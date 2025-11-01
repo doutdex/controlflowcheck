@@ -1,0 +1,14 @@
+{
+  "detected_faces_dir": "data/detected_faces",
+  "min_detection_interval_seconds": 2,
+  "repeat_interval_seconds": 30,
+  "recent_seconds": 60,
+  "similarity_threshold": 0.6,
+  "models_dir": "data/models",
+  "dir_logs": "",
+  "model_files": {
+    "dnn_model": "res10_300x300_ssd_iter_140000.caffemodel",
+    "dnn_config": "deploy.prototxt"
+  },
+  "log_level": "INFO"
+}

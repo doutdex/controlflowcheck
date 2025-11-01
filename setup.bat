@@ -1,0 +1,9 @@
+@echo off
+echo Installing Poetry...
+curl -sSL https://install.python-poetry.org | python3 -
+
+echo Installing project dependencies...
+poetry install
+
+echo Running application...
+poetry run python src/main.py

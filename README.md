@@ -1,4 +1,4 @@
-# Calculadora app
+# Camera Object detector app
 
 ## Run the app
 
