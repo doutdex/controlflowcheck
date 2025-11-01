@@ -32,11 +32,13 @@ if __name__ == "__main__":
             pass
 
         if USE_LOCAL_CAMERA:
-            from camera_local import start_camera
+            from src.modules.cam.camera_local import start_camera
+
             start_camera(page)
-            
+
         else:
-            from camera_remote import upload_image
+            from src.modules.cam.camera_remote import upload_image
+
             upload_image(page)
 
     ft.app(target=main)
