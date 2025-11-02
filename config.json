@@ -1,5 +1,6 @@
 {
   "detected_faces_dir": "data/detected_faces",
+  "processing_fps": 2, # Default processing FPS LOOP VIDEO PROCESSING RECTAC DETECTION FACE
   "min_detection_interval_seconds": 2,
   "repeat_interval_seconds": 30,
   "recent_seconds": 60,
