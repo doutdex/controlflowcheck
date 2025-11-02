@@ -19,10 +19,10 @@ def list_objects_view(page: ft.Page):
     grid = ft.GridView(
         expand=True,
         runs_count=4,
-        max_extent=180,
-        spacing=10,
+        max_extent=250,
+        spacing=4,
         run_spacing=10,
-        padding=10
+        padding=20
     )
 
     # ---- Helpers ----
@@ -40,31 +40,36 @@ def list_objects_view(page: ft.Page):
         return base64.b64encode(buf).decode()
 
     def close_dialog(dialog):
+        if dialog is None:
+            return
         dialog.open = False
         page.update()
 
-    def delete_file(path: Path, dialog):
+    def delete_file(path: Path, confirm_dialog, parent_dialog=None):
         try:
             path.unlink()
         except Exception as e:
             print(f"Error eliminando archivo: {e}")
-        close_dialog(dialog)
+        close_dialog(confirm_dialog)
+        if parent_dialog:
+            close_dialog(parent_dialog)
         refresh()
 
     def open_confirm(path: Path, parent_dialog):
         confirm = ft.AlertDialog(
             modal=True,
             title=ft.Text("Eliminar imagen"),
-            content=ft.Text(f"¿Seguro que deseas eliminar?\n{path.name}"),
+            content=ft.Text("Presiones SI para Elimiminar o No oara cancelar"),
             actions=[
-                ft.TextButton("Cancelar", on_click=lambda e: close_dialog(confirm)),
+                ft.TextButton("No", on_click=lambda e: close_dialog(confirm)),
                 ft.FilledButton(
-                    "Eliminar",
+                    "SI",
                     bgcolor="red",
                     color="white",
-                    on_click=lambda e: delete_file(path, parent_dialog),
+                    on_click=lambda e: delete_file(path, confirm, parent_dialog),
                 ),
             ],
+            actions_alignment=ft.MainAxisAlignment.END,
         )
         page.dialog = confirm
         confirm.open = True
@@ -75,15 +80,24 @@ def list_objects_view(page: ft.Page):
         if not b64:
             return
 
-        dlg = ft.AlertDialog(
-            modal=True,
-            title=ft.Text(path.name, size=14),
+        zoom_viewer = ft.InteractiveViewer(
+            min_scale=0.5,
+            max_scale=6,
+            boundary_margin=ft.Margin(40, 40, 40, 40),
+            pan_enabled=True,
+            scale_enabled=True,
             content=ft.Image(
                 src_base64=b64,
                 width=900,
                 height=700,
                 fit=ft.ImageFit.CONTAIN
             ),
+        )
+
+        dlg = ft.AlertDialog(
+            modal=True,
+            title=ft.Text(path.name, size=14),
+            content=zoom_viewer,
             actions=[
                 ft.TextButton("Eliminar", on_click=lambda e: open_confirm(path, dlg)),
                 ft.TextButton("Cerrar", on_click=lambda e: close_dialog(dlg)),
@@ -118,26 +132,40 @@ def list_objects_view(page: ft.Page):
                 continue
 
             ts = datetime.fromtimestamp(path.stat().st_mtime).strftime("%Y-%m-%d %H:%M:%S")
-
+            
             thumb = ft.Image(
                 src_base64=b64,
-                width=150,
-                height=150,
-                fit=ft.ImageFit.COVER
+                width=100,
+                height=100,
+                fit=ft.ImageFit.NONE
             )
 
             card = ft.Container(
                 bgcolor=ft.Colors.with_opacity(0.05, ft.Colors.BLACK),
-                border_radius=8,
-                padding=6,
-                content=ft.Column(
-                    spacing=4,
+                border_radius=1,
+                padding=1,
+                content=ft.Row(
+                    spacing=1,
                     controls=[
-                        ft.GestureDetector(
-                            content=thumb,
-                            on_tap=lambda e, p=path: open_fullscreen(p)
-                        ),
-                        ft.Text(ts, size=10, color="#666"),
+                        ft.Text(ts, size=5, color="#666"),
+                        # ft.GestureDetector(
+                        #     content=thumb,
+                        #     on_tap=lambda e, p=path: open_fullscreen(p)
+                        # ),
+                        ft.IconButton(
+                                    icon=ft.Icons.ZOOM_IN,
+                                    tooltip="Ver",
+                                    on_click=lambda e, p=path: open_fullscreen(p)
+                                ), 
+                        
+
+                        ft.IconButton(
+                                    icon=ft.Icons.DELETE,
+                                    tooltip="Eliminar",
+                                    icon_color="red",
+                                    on_click=lambda e, p=path: open_confirm(p, None)
+                                ),
+                          thumb,
                         ft.Row(
                             alignment=ft.MainAxisAlignment.CENTER,
                             controls=[
@@ -146,17 +174,15 @@ def list_objects_view(page: ft.Page):
                                     tooltip="Ver",
                                     on_click=lambda e, p=path: open_fullscreen(p)
                                 ),
-                                ft.IconButton(
-                                    icon=ft.Icons.DELETE,
-                                    tooltip="Eliminar",
-                                    icon_color="red",
-                                    on_click=lambda e, p=path: open_confirm(p, None)
-                                ),
+                                
                             ],
                         )
-                    ]
+                    ],
+                    width=500
                 )
             )
+            
+           
             cards.append(card)
 
         grid.controls = cards
@@ -170,11 +196,15 @@ def list_objects_view(page: ft.Page):
             title,
             subtitle,
             ft.Row([
-                ft.Text("Total archivos:", size=14),
+                ft.Text("Total Archivos:", size=14),
                 total_label,
                 ft.IconButton(icon=ft.Icons.REFRESH, on_click=refresh),
             ]),
             ft.Divider(),
             grid,
+            ft.Row(
+                [ft.TextButton("Buy tickets"), ft.TextButton("Listen")],
+                alignment=ft.MainAxisAlignment.END,
+            ),
         ],
     )

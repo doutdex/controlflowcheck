@@ -34,7 +34,7 @@ def start_camera(page: ft.Page, target_container: Optional[ft.Control] = None):
     info = ft.Text("", size=12)
     
     # Initialize faces grid and other state
-    faces_grid = ft.GridView(expand=True, runs_count=5, max_extent=150, child_aspect_ratio=0.8, spacing=10, run_spacing=10, padding=20)
+    faces_grid = ft.GridView(expand=True, runs_count=5, max_extent=150, child_aspect_ratio=0.8, spacing=10, run_spacing=5, padding=5)
     running = {"flag": False}
     cap = {"obj": None}
     face_cascade = cv2.CascadeClassifier(cv2.data.haarcascades + 'haarcascade_frontalface_default.xml')
