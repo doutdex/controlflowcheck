@@ -95,14 +95,49 @@ def main(page: ft.Page) -> None:
 
     def exit_application() -> None:
         logging.info("Saliendo de la aplicacion por accion del system tray.")
-        stop_system_tray(tray_icon_holder["icon"])  # type: ignore[arg-type]
-        page.window_prevent_close = False
+
+        tray_icon = tray_icon_holder.get("icon")
+        stop_system_tray(tray_icon)  # type: ignore[arg-type]
+        tray_icon_holder["icon"] = None
+
+        # liberar handlers que bloquean el cierre
         try:
-            page.window.close()
+            page.on_window_event = None
         except Exception:
-            logging.debug("Cierre directo de window no soportado; ocultando ventana.")
-            page.window_visible = False
-            page.update()
+            pass
+        try:
+            page.on_disconnect = None
+        except Exception:
+            pass
+
+        try:
+            page.window.prevent_close = False
+        except Exception:
+            pass
+
+        # asegurarnos que la ventana vuelva a mostrarse para un cierre limpio
+        try:
+            page.window.visible = True
+            page.window.minimized = False
+        except Exception:
+            pass
+
+        closed = False
+        for attr in ("close", "destroy"):
+            try:
+                getattr(page.window, attr)()
+                closed = True
+                break
+            except Exception as exc:
+                logging.debug("No se pudo ejecutar page.window.%s: %s", attr, exc)
+
+        if not closed:
+            logging.debug("Ocultando ventana como ultimo recurso.")
+            try:
+                page.window.visible = False
+                page.update()
+            except Exception:
+                pass
 
     def change_tab(e: ft.ControlEvent) -> None:
         idx = e.control.selected_index
